@@ -17,6 +17,7 @@
 #include <linux/pagevec.h>
 #include <linux/migrate.h>
 #include <linux/page_cgroup.h>
+#include <linux/export.h>
 
 #include <asm/pgtable.h>
 
@@ -42,6 +43,7 @@ struct address_space swapper_space = {
 	.i_mmap_nonlinear = LIST_HEAD_INIT(swapper_space.i_mmap_nonlinear),
 	.backing_dev_info = &swap_backing_dev_info,
 };
+EXPORT_SYMBOL_GPL(swapper_space);
 
 #define INC_CACHE_INFO(x)	do { swap_cache_info.x++; } while (0)
 
@@ -376,7 +378,8 @@ struct page *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
 	struct page *page;
 	unsigned long offset = swp_offset(entry);
 	unsigned long start_offset, end_offset;
-	unsigned long mask = (1UL << page_cluster) - 1;
+	unsigned long mask = is_swap_fast(entry) ? 0 :
+				(1UL << page_cluster) - 1;
 
 	/* Read a page_cluster sized and aligned cluster around offset. */
 	start_offset = offset & ~mask;

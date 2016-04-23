@@ -394,7 +394,7 @@ static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
 		tmp->vm_next = tmp->vm_prev = NULL;
 		file = tmp->vm_file;
 		if (file) {
-			struct inode *inode = file->f_path.dentry->d_inode;
+			struct inode *inode = file_inode(file);
 			struct address_space *mapping = file->f_mapping;
 
 			get_file(file);
@@ -1281,7 +1281,10 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 #endif
 
 #ifdef CONFIG_DEBUG_MUTEXES
-	p->blocked_on = NULL; /* not blocked yet */
+	/* not blocked yet */
+	p->blocked_on = NULL;
+	p->blocked_by = NULL;
+	p->blocked_since = 0;
 #endif
 #ifdef CONFIG_CGROUP_MEM_RES_CTLR
 	p->memcg_batch.do_batch = 0;
