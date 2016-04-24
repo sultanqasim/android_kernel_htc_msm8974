@@ -68,6 +68,7 @@ struct msm_cpp_timer_t {
 
 struct msm_cpp_timer_t cpp_timer;
 
+/* dump the frame command before writing to the hardware */
 #define  MSM_CPP_DUMP_FRM_CMD 0
 
 static int msm_cpp_buffer_ops(struct cpp_device *cpp_dev,
@@ -628,7 +629,7 @@ void msm_cpp_do_tasklet(unsigned long data)
 				if ((msg_id == MSM_CPP_MSG_ID_FRAME_ACK)
 					&& (atomic_read(&cpp_timer.used))) {
 					CPP_DBG("Frame done!!\n");
-					
+					/* delete CPP timer */
 					CPP_DBG("delete timer.\n");
 					msm_cpp_clear_timer(cpp_dev);
 					msm_cpp_notify_frame_done(cpp_dev,
@@ -895,7 +896,7 @@ static void cpp_load_fw(struct cpp_device *cpp_dev, char *fw_name_bin)
 		msm_camera_io_w(0xFFFFFFFF, cpp_dev->base +
 			MSM_CPP_MICRO_IRQGEN_CLR);
 
-		
+		/*Start firmware loading*/
 		msm_cpp_write(MSM_CPP_CMD_FW_LOAD, cpp_dev->base);
 		if (fw)
 			msm_cpp_write(fw->size, cpp_dev->base);
@@ -916,7 +917,7 @@ static void cpp_load_fw(struct cpp_device *cpp_dev, char *fw_name_bin)
 		msm_cpp_poll(cpp_dev->base, MSM_CPP_MSG_ID_CMD);
 	}
 
-	
+	/*Trigger MC to jump to start address*/
 	msm_cpp_write(MSM_CPP_CMD_EXEC_JUMP, cpp_dev->base);
 	msm_cpp_write(MSM_CPP_JUMP_ADDRESS, cpp_dev->base);
 
@@ -925,12 +926,12 @@ static void cpp_load_fw(struct cpp_device *cpp_dev, char *fw_name_bin)
 	msm_cpp_poll(cpp_dev->base, MSM_CPP_MSG_ID_JUMP_ACK);
 	msm_cpp_poll(cpp_dev->base, MSM_CPP_MSG_ID_TRAILER);
 
-	
+	/*Get Bootloader Version*/
 	msm_cpp_write(MSM_CPP_CMD_GET_BOOTLOADER_VER, cpp_dev->base);
 	pr_info("MC Bootloader Version: 0x%x\n",
 		   msm_cpp_read(cpp_dev->base));
 
-	
+	/*Get Firmware Version*/
 	msm_cpp_write(MSM_CPP_CMD_GET_FW_VER, cpp_dev->base);
 	msm_cpp_write(MSM_CPP_MSG_ID_CMD, cpp_dev->base);
 	msm_cpp_write(0x1, cpp_dev->base);
@@ -943,7 +944,9 @@ static void cpp_load_fw(struct cpp_device *cpp_dev, char *fw_name_bin)
 	pr_info("CPP FW Version: 0x%x\n", msm_cpp_read(cpp_dev->base));
 	msm_cpp_poll(cpp_dev->base, MSM_CPP_MSG_ID_TRAILER);
 
-	
+	/*Disable MC clock*/
+	/*msm_camera_io_w(0x0, cpp_dev->base +
+					   MSM_CPP_MICRO_CLKEN_CTL);*/
 }
 
 static int cpp_open_node(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
@@ -1260,7 +1263,7 @@ static int msm_cpp_send_frame_to_hardware(struct cpp_device *cpp_dev,
 
 		cpp_timer.data.processed_frame = process_frame;
 		atomic_set(&cpp_timer.used, 1);
-		
+		/* install timer for cpp timeout */
 		CPP_DBG("Installing cpp_timer\n");
 		setup_timer(&cpp_timer.cpp_timer,
 			cpp_timer_callback, (unsigned long)&cpp_timer);
@@ -1386,7 +1389,7 @@ static int msm_cpp_cfg(struct cpp_device *cpp_dev,
 	}
 	out_phyaddr1 = out_phyaddr0;
 
-	
+	/* get buffer for duplicate output */
 	if (new_frame->duplicate_output) {
 		CPP_DBG("duplication enabled, dup_id=0x%x",
 			new_frame->duplicate_identity);
@@ -1418,7 +1421,7 @@ static int msm_cpp_cfg(struct cpp_device *cpp_dev,
 				&dup_buff_mgr_info);
 			goto ERROR3;
 		}
-		
+		/* set duplicate enable bit */
 		cpp_frame_msg[5] |= 0x1;
 	}
 

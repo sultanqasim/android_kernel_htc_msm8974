@@ -16,6 +16,7 @@
 #include "msm_camera_i2c_mux.h"
 #include "msm_cci.h"
 
+/*#define CONFIG_MSM_CAMERA_DT_DEBUG*/
 #undef CDBG
 #ifdef CONFIG_MSM_CAMERA_DT_DEBUG
 #define CDBG(fmt, args...) pr_err(fmt, ##args)
@@ -30,14 +31,14 @@ int msm_camera_fill_vreg_params(struct camera_vreg_t *cam_vreg,
 	uint16_t i = 0;
 	int      j = 0;
 
-	
+	/* Validate input parameters */
 	if (!cam_vreg || !power_setting) {
 		pr_err("%s:%d failed: cam_vreg %p power_setting %p", __func__,
 			__LINE__,  cam_vreg, power_setting);
 		return -EINVAL;
 	}
 
-	
+	/* Validate size of num_vreg */
 	if (num_vreg <= 0) {
 		pr_err("failed: num_vreg %d", num_vreg);
 		return -EINVAL;

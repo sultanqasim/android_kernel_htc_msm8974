@@ -69,6 +69,10 @@ struct table {
 	u8 flags;
 } __aligned(4);
 
+/*
+ * All 64bit fields should only be manipulated by 64bit atomic accessors.
+ * All modifications to 32bit counter should be protected by zram->lock.
+ */
 struct zram_stats {
 	atomic64_t compr_size;	/* compressed size of pages stored */
 	atomic64_t num_reads;	/* failed + successful */

@@ -71,9 +71,9 @@ struct mdss_debug_inf {
 #define MDSS_IRQ_REQ		0
 
 struct mdss_intr {
-	
+	/* requested intr */
 	u32 req;
-	
+	/* currently enabled intr */
 	u32 curr;
 	int state;
 	spinlock_t lock;

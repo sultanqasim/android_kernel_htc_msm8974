@@ -26,6 +26,7 @@
 
 #define MAX_SESSIONS 2
 
+/* wait for at most 2 vsync for lowest refresh rate (24hz) */
 #define KOFF_TIMEOUT msecs_to_jiffies(84)
 
 #define STOP_TIMEOUT(hz) msecs_to_jiffies((1000 / hz) * (VSYNC_EXPIRE_TICK + 2))
@@ -51,12 +52,12 @@ struct mdss_mdp_cmd_ctx {
 	struct work_struct post_commit_cmd_work;
 	atomic_t pp_done_cnt;
 
-	
+	/* te config */
 	u8 tear_check;
-	u16 height;	
-	u16 vporch;	
+	u16 height;	/* panel height */
+	u16 vporch;	/* vertical porches */
 	u16 start_threshold;
-	u32 vclk_line;	
+	u32 vclk_line;	/* vsync clock per line */
 	struct mdss_panel_recovery recovery;
 
 	int logging;
@@ -67,7 +68,7 @@ struct mdss_mdp_cmd_ctx mdss_mdp_cmd_ctx_list[MAX_SESSIONS];
 static inline u32 mdss_mdp_cmd_line_count(struct mdss_mdp_ctl *ctl)
 {
 	struct mdss_mdp_mixer *mixer;
-	u32 cnt = 0xffff;	
+	u32 cnt = 0xffff;	/* init it to an invalid value */
 	u32 init;
 	u32 height;
 
@@ -96,7 +97,7 @@ static inline u32 mdss_mdp_cmd_line_count(struct mdss_mdp_ctl *ctl)
 	cnt = mdss_mdp_pingpong_read
 		(mixer, MDSS_MDP_REG_PP_INT_COUNT_VAL) & 0xffff;
 
-	if (cnt < init)		
+	if (cnt < init)		/* wrap around happened at height */
 		cnt += (height - init);
 	else
 		cnt -= init;
@@ -603,6 +604,9 @@ int mdss_mdp_cmd_kickoff(struct mdss_mdp_ctl *ctl, void *arg)
 
 	mdss_mdp_cmd_set_partial_roi(ctl);
 
+	/*
+	 * tx dcs command if had any
+	 */
 	mdss_mdp_ctl_intf_event(ctl, MDSS_EVENT_DSI_CMDLIST_KOFF, NULL);
 	INIT_COMPLETION(ctx->pp_comp);
 	mdss_mdp_irq_enable(MDSS_MDP_IRQ_PING_PONG_COMP, ctx->pp_num);

@@ -387,6 +387,12 @@ long msm_isp_ioctl(struct v4l2_subdev *sd,
 	long rc = 0;
 	struct vfe_device *vfe_dev = v4l2_get_subdevdata(sd);
 
+	/* Use real time mutex for hard real-time ioctls such as
+	 * buffer operations and register updates.
+	 * Use core mutex for other ioctls that could take
+	 * longer time to complete such as start/stop ISP streams
+	 * which blocks until the hardware start/stop streaming
+	 */
 	ISP_DBG("%s cmd: %d\n", __func__, _IOC_TYPE(cmd));
 	switch (cmd) {
 	case VIDIOC_MSM_VFE_REG_CFG: {
@@ -477,7 +483,7 @@ static int msm_isp_send_hw_cmd(struct vfe_device *vfe_dev,
 		return -EINVAL;
 	}
 
-	
+	/* Validate input parameters */
 	switch (reg_cfg_cmd->cmd_type) {
 	case VFE_WRITE:
 	case VFE_READ:
@@ -1000,7 +1006,7 @@ int msm_isp_get_bit_per_pixel(uint32_t output_format)
 	case V4L2_PIX_FMT_NV61:
 	case V4L2_PIX_FMT_Y16:
 		return 16;
-		
+		/*TD: Add more image format*/
 	default:
 		msm_isp_print_fourcc_error(__func__, output_format);
 		return -EINVAL;
@@ -1069,7 +1075,7 @@ static inline void msm_isp_process_overflow_irq(
 {
 	uint32_t overflow_mask;
 	uint32_t halt_restart_mask0, halt_restart_mask1;
-	
+	/*Mask out all other irqs if recovery is started*/
 	if (atomic_read(&vfe_dev->error_info.overflow_state) !=
 		NO_OVERFLOW) {
 		vfe_dev->hw_info->vfe_ops.core_ops.
@@ -1080,7 +1086,7 @@ static inline void msm_isp_process_overflow_irq(
 		return;
 	}
 
-	
+	/*Check if any overflow bit is set*/
 	vfe_dev->hw_info->vfe_ops.core_ops.
 		get_overflow_mask(&overflow_mask);
 	overflow_mask &= *irq_status1;
@@ -1090,16 +1096,16 @@ static inline void msm_isp_process_overflow_irq(
 		atomic_set(&vfe_dev->error_info.overflow_state,
 				OVERFLOW_DETECTED);
 		pr_warning("%s: Start bus overflow recovery\n", __func__);
-		
+		/*Store current IRQ mask*/
 		vfe_dev->hw_info->vfe_ops.core_ops.get_irq_mask(vfe_dev,
 			&vfe_dev->error_info.overflow_recover_irq_mask0,
 			&vfe_dev->error_info.overflow_recover_irq_mask1);
-		
+		/*Stop CAMIF Immediately*/
 		vfe_dev->hw_info->vfe_ops.core_ops.
 			update_camif_state(vfe_dev, DISABLE_CAMIF_IMMEDIATELY_VFE_RECOVER);
 		
 		vfe_dev->hw_info->vfe_ops.axi_ops.halt(vfe_dev, 0);
-		
+		/*Update overflow state*/
 		atomic_set(&vfe_dev->error_info.overflow_state, HALT_REQUESTED);
 		*irq_status0 = 0;
 		*irq_status1 = 0;
@@ -1155,6 +1161,14 @@ static inline void msm_isp_process_overflow_recovery(
 		break;
 	case RESTART_REQUESTED: {
 		pr_err("%s: Restart done, Resuming\n", __func__);
+		/*Reset the burst stream frame drop pattern, in the
+		 *case where bus overflow happens during the burstshot,
+		 *the framedrop pattern might be updated after reg update
+		 *to skip all the frames after the burst shot. The burst shot
+		 *might not be completed due to the overflow, so the framedrop
+		 *pattern need to change back to the original settings in order
+		 *to recovr from overflow.
+		 */
 		msm_isp_reset_burst_count(vfe_dev);
 		vfe_dev->hw_info->vfe_ops.axi_ops.
 			reload_wm(vfe_dev, 0xFFFFFFFF);
@@ -1330,7 +1344,7 @@ int msm_isp_open_node(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
 		vfe_dev->soc_hw_version = msm_camera_io_r(vfe_dev->tcsr_base);
 		break;
 	default:
-		
+		/* SOC HARDWARE VERSION NOT SUPPORTED */
 		vfe_dev->soc_hw_version = 0x00;
 	}
 

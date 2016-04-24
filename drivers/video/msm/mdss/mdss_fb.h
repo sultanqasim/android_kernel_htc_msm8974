@@ -29,6 +29,7 @@
 #define MSM_FB_ENABLE_DBGFS
 #define WAIT_FENCE_FIRST_TIMEOUT (3 * MSEC_PER_SEC)
 #define WAIT_FENCE_FINAL_TIMEOUT (10 * MSEC_PER_SEC)
+/* Display op timeout should be greater than total timeout */
 #define WAIT_DISP_OP_TIMEOUT ((WAIT_FENCE_FIRST_TIMEOUT + \
 		WAIT_FENCE_FINAL_TIMEOUT) * MDP_MAX_FENCE_FD)
 
@@ -97,7 +98,7 @@ struct msm_mdp_interface {
 	int (*init_fnc)(struct msm_fb_data_type *mfd);
 	int (*on_fnc)(struct msm_fb_data_type *mfd);
 	int (*off_fnc)(struct msm_fb_data_type *mfd);
-	
+	/* called to release resources associated to the process */
 	int (*release_fnc)(struct msm_fb_data_type *mfd, bool release_all);
 	int (*kickoff_fnc)(struct msm_fb_data_type *mfd,
 					struct mdp_display_commit *data);
@@ -195,7 +196,7 @@ struct msm_fb_data_type {
 
 	struct msm_sync_pt_data mdp_sync_pt_data;
 
-	
+	/* for non-blocking */
 	struct task_struct *disp_thread;
 	atomic_t commits_pending;
 	atomic_t kickoff_pending;
@@ -251,4 +252,4 @@ int mdss_fb_register_mdp_instance(struct msm_mdp_interface *mdp);
 int mdss_fb_dcm(struct msm_fb_data_type *mfd, int req_state);
 #define DEFAULT_BRIGHTNESS 143
 int mdss_fb_suspres_panel(struct device *dev, void *data);
-#endif 
+#endif /* MDSS_FB_H */

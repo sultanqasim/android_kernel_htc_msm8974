@@ -145,6 +145,13 @@ static bool v_overshoot_fixed(void)
 	return false;
 }
 
+/**
+ * krait_pmic_is_ready - function to check if the driver is initialized
+ *
+ * CONTEXT: Can be called in atomic context
+ *
+ * RETURNS: true if this driver has initialized, false otherwise
+ */
 bool krait_pmic_is_ready(void)
 {
 	if (the_chip == NULL) {
@@ -157,6 +164,13 @@ EXPORT_SYMBOL(krait_pmic_is_ready);
 
 #define I_PFM_MA		2000
 
+/**
+ * krait_pmic_post_pfm_entry - workarounds after entering pfm mode
+ *
+ * CONTEXT: Can be called in atomic context
+ *
+ * RETURNS: 0 on success, error code on failure
+ */
 int krait_pmic_post_pfm_entry(void)
 {
 	u8 setpoint;
@@ -181,6 +195,13 @@ int krait_pmic_post_pfm_entry(void)
 EXPORT_SYMBOL(krait_pmic_post_pfm_entry);
 
 #define I_PWM_MA		3500
+/**
+ * krait_pmic_post_pwm_entry - workarounds after entering pwm mode
+ *
+ * CONTEXT: Can be called in atomic context
+ *
+ * RETURNS: 0 on success, error code on failure
+ */
 int krait_pmic_post_pwm_entry(void)
 {
 	u8 setpoint;

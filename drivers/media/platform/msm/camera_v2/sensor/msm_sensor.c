@@ -27,6 +27,7 @@
 #include "ilp0100_customer_sensor_config.h"
 #endif
 
+/*#define CONFIG_MSMB_CAMERA_DEBUG*/
 #undef CDBG
 #ifdef CONFIG_MSMB_CAMERA_DEBUG
 #define CDBG(fmt, args...) pr_info("[CAM] : " fmt, ##args)
@@ -922,7 +923,7 @@ if(strcmp(sensordata->sensor_name, "ov13850") ==0)
 	CDBG("%s qcom,cci-master %d, rc %d\n", __func__, s_ctrl->cci_i2c_master,
 		rc);
 	if (rc < 0) {
-		
+		/* Set default master 0 */
 		s_ctrl->cci_i2c_master = MASTER_0;
 		rc = 0;
 	}
@@ -956,13 +957,13 @@ if(strcmp(sensordata->sensor_name, "ov13850") ==0)
 		goto ERROR1;
 	}
 
-	
+	/* Get sensor mount angle */
 	rc = of_property_read_u32(of_node, "qcom,mount-angle",
 		&sensordata->sensor_info->sensor_mount_angle);
 	CDBG("%s qcom,mount-angle %d, rc %d\n", __func__,
 		sensordata->sensor_info->sensor_mount_angle, rc);
 	if (rc < 0) {
-		
+		/* Invalidate mount angle flag */
 		pr_err("%s Default sensor mount angle %d\n",
 					__func__, __LINE__);
 		sensordata->sensor_info->is_mount_angle_valid = 0;
@@ -1106,7 +1107,7 @@ if(strcmp(sensordata->sensor_name, "ov13850") ==0)
 	sensordata->slave_info->sensor_id_reg_addr = id_info[1];
 	sensordata->slave_info->sensor_id = id_info[2];
 
-	
+	/*Optional property, don't return error if absent */
 	ret = of_property_read_string(of_node, "qcom,vdd-cx-name",
 		&sensordata->misc_regulator);
 	CDBG("%s qcom,misc_regulator %s, rc %d\n", __func__,
@@ -1788,6 +1789,9 @@ static void msm_sensor_stop_stream(struct msm_sensor_ctrl_t *s_ctrl)
 static int msm_sensor_get_af_status(struct msm_sensor_ctrl_t *s_ctrl,
 			void __user *argp)
 {
+	/* TO-DO: Need to set AF status register address and expected value
+	We need to check the AF status in the sensor register and
+	set the status in the *status variable accordingly*/
 	return 0;
 }
 
@@ -1880,13 +1884,13 @@ int32_t msm_sensor_config(struct msm_sensor_ctrl_t *s_ctrl,
 			rc = -EFAULT;
 			break;
 		}
-		
+		/* Update sensor slave address */
 		if (sensor_slave_info.slave_addr) {
 			s_ctrl->sensor_i2c_client->cci_client->sid =
 				sensor_slave_info.slave_addr >> 1;
 		}
 
-		
+		/* Update sensor address type */
 		s_ctrl->sensor_i2c_client->addr_type =
 			sensor_slave_info.addr_type;
 
@@ -2448,7 +2452,7 @@ int32_t msm_sensor_platform_probe(struct platform_device *pdev, void *data)
 		pr_err("%s failed line %d\n", __func__, __LINE__);
 		return rc;
 	}
-	
+	/* TODO: get CCI subdev */
 	cci_client = s_ctrl->sensor_i2c_client->cci_client;
 	cci_client->cci_subdev = msm_cci_get_subdev();
 	cci_client->cci_i2c_master = s_ctrl->cci_i2c_master;

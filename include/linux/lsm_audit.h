@@ -1,3 +1,12 @@
+/*
+ * Common LSM logging functions
+ * Heavily borrowed from selinux/avc.h
+ *
+ * Author : Etienne BASSET  <etienne.basset@ensta.org>
+ *
+ * All credits to : Stephen Smalley, <sds@epoch.ncsc.mil>
+ * All BUGS to : Etienne BASSET  <etienne.basset@ensta.org>
+ */
 #ifndef _LSM_COMMON_LOGGING_
 #define _LSM_COMMON_LOGGING_
 
@@ -36,6 +45,7 @@ struct lsm_ioctlop_audit {
 	u16 cmd;
 };
 
+/* Auxiliary data to use in generating the audit record. */
 struct common_audit_data {
 	char type;
 #define LSM_AUDIT_DATA_PATH	1
@@ -67,7 +77,7 @@ struct common_audit_data {
 		char *kmod_name;
 		struct lsm_ioctlop_audit *op;
 	} u;
-	
+	/* this union contains LSM specific data */
 	union {
 #ifdef CONFIG_SECURITY_SMACK
 		struct smack_audit_data *smack_audit_data;
@@ -78,7 +88,7 @@ struct common_audit_data {
 #ifdef CONFIG_SECURITY_APPARMOR
 		struct apparmor_audit_data *apparmor_audit_data;
 #endif
-	}; 
+	}; /* per LSM data pointer union */
 };
 
 #define v4info fam.v4
