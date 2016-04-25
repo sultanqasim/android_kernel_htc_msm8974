@@ -81,11 +81,14 @@ static int really_do_swap_account __initdata = 0;
  * Statistics for memory cgroup.
  */
 enum mem_cgroup_stat_index {
-	MEM_CGROUP_STAT_CACHE, 	   
-	MEM_CGROUP_STAT_RSS,	   
-	MEM_CGROUP_STAT_FILE_MAPPED,  
-	MEM_CGROUP_STAT_SWAPOUT, 
-	MEM_CGROUP_STAT_DATA, 
+	/*
+	 * For MEM_CONTAINER_TYPE_ALL, usage = pagecache + rss.
+	 */
+	MEM_CGROUP_STAT_CACHE, 	   /* # of pages charged as cache */
+	MEM_CGROUP_STAT_RSS,	   /* # of pages charged as anon rss */
+	MEM_CGROUP_STAT_FILE_MAPPED,  /* # of pages charged as file rss */
+	MEM_CGROUP_STAT_SWAPOUT, /* # of pages, swapped out */
+	MEM_CGROUP_STAT_DATA, /* end of data requires synchronization */
 	MEM_CGROUP_STAT_NSTATS,
 };
 

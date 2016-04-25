@@ -449,7 +449,11 @@ void mdss_dsi_sw_reset_restore(struct mdss_dsi_ctrl_pdata *ctrl)
 	data1 = data0;
 	data1 &= ~0x01;
 	MIPI_OUTP(ctrl->ctrl_base + 0x0004, data1);
-	wmb();	
+	/*
+	 * dsi controller need to be disabled before
+	 * clocks turned on
+	 */
+	wmb();	/* make sure dsi contoller is disabled */
 
 	/* turn esc, byte, dsi, pclk, sclk, hclk on */
 	MIPI_OUTP(ctrl->ctrl_base + 0x11c, 0x23f); /* DSI_CLK_CTRL */
@@ -738,44 +742,6 @@ static int mdss_dsi_cmds2buf_tx(struct mdss_dsi_ctrl_pdata *ctrl,
 	return tot;
 }
 
-/**
- * __mdss_dsi_cmd_mode_config() - Enable/disable command mode engine
- * @ctrl: pointer to the dsi controller structure
- * @enable: true to enable command mode, false to disable command mode
- *
- * This function can be used to temporarily enable the command mode
- * engine (even for video mode panels) so as to transfer any dma commands to
- * the panel. It can also be used to disable the command mode engine
- * when no longer needed.
- *
- * Return: true, if there was a mode switch to command mode for video mode
- * panels.
- */
-static inline bool __mdss_dsi_cmd_mode_config(
-	struct mdss_dsi_ctrl_pdata *ctrl, bool enable)
-{
-	bool mode_changed = false;
-	u32 dsi_ctrl;
-
-	dsi_ctrl = MIPI_INP((ctrl->ctrl_base) + 0x0004);
-	/* if currently in video mode, enable command mode */
-	if (enable) {
-		if ((dsi_ctrl) & BIT(1)) {
-			MIPI_OUTP((ctrl->ctrl_base) + 0x0004,
-				dsi_ctrl | BIT(2));
-			mode_changed = true;
-		}
-	} else {
-		MIPI_OUTP((ctrl->ctrl_base) + 0x0004, dsi_ctrl & ~BIT(2));
-	}
-
-	return mode_changed;
-}
-
-/*
- * mdss_dsi_cmds_tx:
- * thread context only
- */
 int mdss_dsi_cmds_tx(struct mdss_dsi_ctrl_pdata *ctrl,
 		struct dsi_cmd_desc *cmds, int cnt)
 {

@@ -73,7 +73,13 @@ EXPORT_PER_CPU_SYMBOL(numa_node);
 #endif
 
 #ifdef CONFIG_HAVE_MEMORYLESS_NODES
-DEFINE_PER_CPU(int, _numa_mem_);		
+/*
+ * N.B., Do NOT reference the '_numa_mem_' per cpu variable directly.
+ * It will not be defined when CONFIG_HAVE_MEMORYLESS_NODES is not defined.
+ * Use the accessor functions set_numa_mem(), numa_mem_id() and cpu_to_mem()
+ * defined in <linux/topology.h>.
+ */
+DEFINE_PER_CPU(int, _numa_mem_);		/* Kernel "local memory" node */
 EXPORT_PER_CPU_SYMBOL(_numa_mem_);
 #endif
 
@@ -5346,7 +5352,12 @@ int __meminit init_per_zone_wmark_min(void)
 }
 module_init(init_per_zone_wmark_min)
 
-int min_free_kbytes_sysctl_handler(ctl_table *table, int write,
+/*
+ * min_free_kbytes_sysctl_handler - just a wrapper around proc_dointvec() so 
+ *	that we can call two helper functions whenever min_free_kbytes
+ *	or extra_free_kbytes changes.
+ */
+int min_free_kbytes_sysctl_handler(ctl_table *table, int write, 
 	void __user *buffer, size_t *length, loff_t *ppos)
 {
 	proc_dointvec(table, write, buffer, length, ppos);

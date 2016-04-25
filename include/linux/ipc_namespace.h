@@ -7,9 +7,12 @@
 #include <linux/notifier.h>
 #include <linux/nsproxy.h>
 
-#define IPCNS_MEMCHANGED   0x00000001   
-#define IPCNS_CREATED  0x00000002   
-#define IPCNS_REMOVED  0x00000003   
+/*
+ * ipc namespace events
+ */
+#define IPCNS_MEMCHANGED   0x00000001   /* Notify lowmem size changed */
+#define IPCNS_CREATED  0x00000002   /* Notify new ipc namespace created */
+#define IPCNS_REMOVED  0x00000003   /* Notify ipc namespace removed */
 
 #define IPCNS_CALLBACK_PRI 0
 

@@ -688,11 +688,6 @@ static int fuse_readpages_fill(void *_data, struct page *page)
 			return err;
 		}
 
-		/*
-		 * Decrement the count on new page to make page cache the only
-		 * owner of it
-		 */
-		lock_page(newpage);
 		put_page(newpage);
 
 		lru_cache_add_file(newpage);

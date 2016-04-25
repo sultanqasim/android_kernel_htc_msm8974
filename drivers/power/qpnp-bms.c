@@ -562,12 +562,6 @@ static int lock_output_data(struct qpnp_bms_chip *chip)
 		pr_err("couldnt lock bms output rc = %d\n", rc);
 		return rc;
 	}
-	/*
-	 * Sleep for at least 60 microseconds here to make sure there has
-	 * been at least two cycles of the sleep clock so that the registers
-	 * are correctly locked.
-	 */
-	usleep_range(60, 2000);
 	return 0;
 }
 
@@ -5006,11 +5000,6 @@ static void load_shutdown_data(struct qpnp_bms_chip *chip)
 	bms_dbg.shutdown_soc = shutdown_soc;
 	invalid_stored_soc = (shutdown_soc == SOC_INVALID);
 
-	/*
-	 * Do a quick run of SoC calculation to find whether the shutdown soc
-	 * is close enough.
-	 */
-	chip->shutdown_iavg_ma = MIN_IAVG_MA;
 	calculated_soc = recalculate_raw_soc(chip);
 	shutdown_soc_out_of_limit = (abs(shutdown_soc - calculated_soc)
 			> chip->shutdown_soc_valid_limit);

@@ -35,8 +35,12 @@ struct netns_ipvs;
 #define NETDEV_HASHENTRIES (1 << NETDEV_HASHBITS)
 
 struct net {
-	atomic_t		passive;	
-	atomic_t		count;		
+	atomic_t		passive;	/* To decided when the network
+						 * namespace should be freed.
+						 */
+	atomic_t		count;		/* To decided when the network
+						 *  namespace should be shut down.
+						 */
 #ifdef NETNS_REFCNT_DEBUG
 	atomic_t		use_count;	/* To track references we
 						 * destroy on demand

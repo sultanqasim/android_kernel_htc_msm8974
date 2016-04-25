@@ -2744,10 +2744,14 @@ static int msm_hs_sps_init(struct msm_hs_port *msm_uport)
 	if (rc || !bam_handle) {
 		bam.phys_addr = msm_uport->bam_mem;
 		bam.virt_addr = msm_uport->bam_base;
-		bam.event_threshold = 0x10;	
-		bam.summing_threshold = 1;	
+		/*
+		 * This event thresold value is only significant for BAM-to-BAM
+		 * transfer. It's ignored for BAM-to-System mode transfer.
+		 */
+		bam.event_threshold = 0x10;	/* Pipe event threshold */
+		bam.summing_threshold = 1;	/* BAM event threshold */
 
-		
+		/* SPS driver wll handle the UART BAM IRQ */
 		bam.irq = (u32)msm_uport->bam_irq;
 		bam.manage = SPS_BAM_MGR_DEVICE_REMOTE;
 

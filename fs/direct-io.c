@@ -59,37 +59,57 @@
 /* dio_state only used in the submission path */
 
 struct dio_submit {
-	struct bio *bio;		
-	unsigned blkbits;		
-	unsigned blkfactor;		
-	unsigned start_zero_done;	
-	int pages_in_io;		
-	size_t	size;			
-	sector_t block_in_file;		
-	unsigned blocks_available;	
-	int reap_counter;		
-	sector_t final_block_in_request;
-	unsigned first_block_in_page;	
-	int boundary;			
-	get_block_t *get_block;		
-	dio_submit_t *submit_io;	
+	struct bio *bio;		/* bio under assembly */
+	unsigned blkbits;		/* doesn't change */
+	unsigned blkfactor;		/* When we're using an alignment which
+					   is finer than the filesystem's soft
+					   blocksize, this specifies how much
+					   finer.  blkfactor=2 means 1/4-block
+					   alignment.  Does not change */
+	unsigned start_zero_done;	/* flag: sub-blocksize zeroing has
+					   been performed at the start of a
+					   write */
+	int pages_in_io;		/* approximate total IO pages */
+	size_t	size;			/* total request size (doesn't change)*/
+	sector_t block_in_file;		/* Current offset into the underlying
+					   file in dio_block units. */
+	unsigned blocks_available;	/* At block_in_file.  changes */
+	int reap_counter;		/* rate limit reaping */
+	sector_t final_block_in_request;/* doesn't change */
+	unsigned first_block_in_page;	/* doesn't change, Used only once */
+	int boundary;			/* prev block is at a boundary */
+	get_block_t *get_block;		/* block mapping function */
+	dio_submit_t *submit_io;	/* IO submition function */
 
-	loff_t logical_offset_in_bio;	
-	sector_t final_block_in_bio;	
-	sector_t next_block_for_io;	
+	loff_t logical_offset_in_bio;	/* current first logical block in bio */
+	sector_t final_block_in_bio;	/* current final block in bio + 1 */
+	sector_t next_block_for_io;	/* next block to be put under IO,
+					   in dio_blocks units */
 
-	struct page *cur_page;		
-	unsigned cur_page_offset;	
-	unsigned cur_page_len;		
-	sector_t cur_page_block;	
-	loff_t cur_page_fs_offset;	
+	/*
+	 * Deferred addition of a page to the dio.  These variables are
+	 * private to dio_send_cur_page(), submit_page_section() and
+	 * dio_bio_add_page().
+	 */
+	struct page *cur_page;		/* The page */
+	unsigned cur_page_offset;	/* Offset into it, in bytes */
+	unsigned cur_page_len;		/* Nr of bytes at cur_page_offset */
+	sector_t cur_page_block;	/* Where it starts */
+	loff_t cur_page_fs_offset;	/* Offset in file */
 
-	int curr_page;			
-	int total_pages;		
-	unsigned long curr_user_address;
+	/*
+	 * Page fetching state. These variables belong to dio_refill_pages().
+	 */
+	int curr_page;			/* changes */
+	int total_pages;		/* doesn't change */
+	unsigned long curr_user_address;/* changes */
 
-	unsigned head;			
-	unsigned tail;			
+	/*
+	 * Page queue.  These variables belong to dio_refill_pages() and
+	 * dio_get_page().
+	 */
+	unsigned head;			/* next page to process */
+	unsigned tail;			/* last valid page + 1 */
 };
 
 /* dio_state communicated between submission path and end_io */
@@ -115,7 +135,12 @@ struct dio {
 	struct kiocb *iocb;		/* kiocb */
 	ssize_t result;                 /* IO result */
 
-	struct page *pages[DIO_PAGES];	
+	/*
+	 * pages[] (and any fields placed after it) are not zeroed out at
+	 * allocation time.  Don't add new fields after pages[] unless you
+	 * wish that they not be zeroed.
+	 */
+	struct page *pages[DIO_PAGES];	/* page buffer */
 } ____cacheline_aligned_in_smp;
 
 static struct kmem_cache *dio_cache __read_mostly;

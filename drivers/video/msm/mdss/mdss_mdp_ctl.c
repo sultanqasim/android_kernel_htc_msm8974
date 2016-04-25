@@ -761,12 +761,6 @@ static void mdss_mdp_ctl_perf_update(struct mdss_mdp_ctl *ctl,
 	old = &ctl->cur_perf;
 	new = &ctl->new_perf;
 
-	/*
-	 * We could have released the bandwidth if there were no transactions
-	 * pending, so we want to re-calculate the bandwidth in this situation
-	 */
-	is_bw_released = !mdss_mdp_ctl_perf_get_transaction_status(ctl);
-
 	if (ctl->power_on) {
 		if (params_changed)
 			mdss_mdp_perf_calc_ctl(ctl, new);
@@ -1535,27 +1529,6 @@ int mdss_mdp_ctl_intf_event(struct mdss_mdp_ctl *ctl, int event, void *arg)
 	} while (rc == 0 && pdata);
 
 	return rc;
-}
-
-/*
- * mdss_mdp_ctl_restore() - restore mdp ctl path
- * @ctl: mdp controller.
- *
- * This function is called whenever MDP comes out of a power collapse as
- * a result of a screen update when DSI ULPS mode is enabled. It restores
- * the MDP controller's software state to the hardware registers.
- */
-void mdss_mdp_ctl_restore(struct mdss_mdp_ctl *ctl)
-{
-	u32 temp;
-
-	mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_ON, false);
-	temp = readl_relaxed(ctl->mdata->mdp_base +
-		MDSS_MDP_REG_DISP_INTF_SEL);
-	temp |= (ctl->intf_type << ((ctl->intf_num - MDSS_MDP_INTF0) * 8));
-	writel_relaxed(temp, ctl->mdata->mdp_base +
-		MDSS_MDP_REG_DISP_INTF_SEL);
-	mdss_mdp_clk_ctrl(MDP_BLOCK_POWER_OFF, false);
 }
 
 static int mdss_mdp_ctl_start_sub(struct mdss_mdp_ctl *ctl, bool handoff)

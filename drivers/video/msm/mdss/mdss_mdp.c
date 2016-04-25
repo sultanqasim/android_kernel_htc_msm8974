@@ -2656,61 +2656,6 @@ static void mdss_mdp_footswitch_ctrl(struct mdss_data_type *mdata, int on)
 	}
 }
 
-/**
- * mdss_mdp_footswitch_ctrl_ulps() - MDSS GDSC control with ULPS feature
- * @on: 1 to turn on footswitch, 0 to turn off footswitch
- * @dev: framebuffer device node
- *
- * MDSS GDSC can be voted off during idle-screen usecase for MIPI DSI command
- * mode displays with Ultra-Low Power State (ULPS) feature enabled. Upon
- * subsequent frame update, MDSS GDSC needs to turned back on and hw state
- * needs to be restored. It returns error if footswitch control API
- * fails.
- */
-int mdss_mdp_footswitch_ctrl_ulps(int on, struct device *dev)
-{
-	struct mdss_data_type *mdata = mdss_mdp_get_mdata();
-	int rc = 0;
-
-	pr_debug("called on=%d\n", on);
-	if (on) {
-		pm_runtime_get_sync(dev);
-		rc = mdss_iommu_ctrl(1);
-		if (IS_ERR_VALUE(rc)) {
-			pr_err("mdss iommu attach failed rc=%d\n", rc);
-			return rc;
-		}
-		mdss_hw_init(mdata);
-		mdata->ulps = false;
-		mdss_iommu_ctrl(0);
-	} else {
-		mdata->ulps = true;
-		pm_runtime_put_sync(dev);
-	}
-
-	return 0;
-}
-
-int mdss_mdp_secure_display_ctrl(unsigned int enable)
-{
-	struct sd_ctrl_req {
-		unsigned int enable;
-	} __attribute__ ((__packed__)) request;
-	unsigned int resp = -1;
-	int ret = 0;
-
-	request.enable = enable;
-
-	ret = scm_call(SCM_SVC_MP, MEM_PROTECT_SD_CTRL,
-		&request, sizeof(request), &resp, sizeof(resp));
-	pr_debug("scm_call MEM_PROTECT_SD_CTRL(%u): ret=%d, resp=%x",
-				enable, ret, resp);
-	if (ret)
-		return ret;
-
-	return resp;
-}
-
 static inline int mdss_mdp_suspend_sub(struct mdss_data_type *mdata)
 {
 	mdata->suspend_fs_ena = mdata->fs_ena;

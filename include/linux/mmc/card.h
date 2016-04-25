@@ -300,7 +300,14 @@ struct mmc_bkops_info {
 #define MMC_IDLE_BKOPS_TIME_MS 200
 	bool			cancel_delayed_work;
 	unsigned int		sectors_changed;
-#define BKOPS_SIZE_PERCENTAGE_TO_QUEUE_DELAYED_WORK 1 
+/*
+ * Since canceling the delayed work might have significant effect on the
+ * performance of small requests we won't queue the delayed work every time
+ * mmcqd thread is idle.
+ * The delayed work for idle BKOPS will be scheduled only after a significant
+ * amount of write or discard data.
+ */
+#define BKOPS_SIZE_PERCENTAGE_TO_QUEUE_DELAYED_WORK 1 /* 1% */
 };
 
 enum mmc_pon_type {

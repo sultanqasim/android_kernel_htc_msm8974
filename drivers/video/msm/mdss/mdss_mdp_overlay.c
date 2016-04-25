@@ -100,61 +100,6 @@ static int mdss_mdp_overlay_get(struct msm_fb_data_type *mfd,
 	return 0;
 }
 
-/*
- * This function is modified from mainline version. Source-split
- * change is too large to port over onto certain code bases.
- * Source-split patch added a new way to determine if layer
- * is intended for right panel, by using x offset >= left LM
- * This function corrects the x offset.
- * Additionally, patches that fix other issues assumes that checks
- * and corrections in this function are in place.
- */
-static int mdss_mdp_ov_xres_check(struct msm_fb_data_type *mfd,
-	struct mdp_overlay *req)
-{
-	u32 xres = 0;
-	u32 left_lm_w = left_lm_w_from_mfd(mfd);
-	struct mdss_mdp_ctl *ctl = mfd_to_ctl(mfd);
-
-	if (IS_RIGHT_MIXER_OV(req->flags, req->dst_rect.x, left_lm_w)) {
-		if (req->dst_rect.x >= left_lm_w) {
-			/*
-			 * this is a step towards removing a reliance on
-			 * MDSS_MDP_RIGHT_MIXER flags. With the new src split
-			 * code, some clients of non-src-split chipsets have
-			 * stopped sending MDSS_MDP_RIGHT_MIXER flag and
-			 * modified their xres relative to full panel
-			 * dimensions. In such cases, we need to deduct left
-			 * layer mixer width before we programm this HW.
-			 */
-			req->dst_rect.x -= left_lm_w;
-			req->flags |= MDSS_MDP_RIGHT_MIXER;
-		}
-
-		if (ctl->mixer_right) {
-			xres += ctl->mixer_right->width;
-		} else {
-			pr_err("ov cannot be placed on right mixer\n");
-			return -EPERM;
-		}
-	} else {
-		if (ctl->mixer_left) {
-			xres = ctl->mixer_left->width;
-		} else {
-			pr_err("ov cannot be placed on left mixer\n");
-			return -EPERM;
-		}
-	}
-
-	if (CHECK_BOUNDS(req->dst_rect.x, req->dst_rect.w, xres)) {
-		pr_err("dst_xres is invalid. dst_x:%d, dst_w:%d, xres:%d\n",
-			req->dst_rect.x, req->dst_rect.w, xres);
-		return -EOVERFLOW;
-	}
-
-	return 0;
-}
-
 int mdss_mdp_overlay_req_check(struct msm_fb_data_type *mfd,
 			       struct mdp_overlay *req,
 			       struct mdss_mdp_format_params *fmt)

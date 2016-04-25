@@ -73,24 +73,6 @@ struct mdp_csc_cfg mdp_csc_convert[MDSS_MDP_MAX_CSC] = {
 	},
 };
 
-/*
- * To program a linear LUT we need to make the slope to be 1/16 to enable
- * conversion from 12bit to 8bit. Also in cases where post blend values might
- * cross 255, we need to cap them now to 255. The offset of the final segment
- * would be programmed in such a case and we set the value to 32460 which is
- * 255 in U8.7.
- */
-static struct mdp_ar_gc_lut_data lin_gc_data[GC_LUT_SEGMENTS] = {
-	{   0, 256, 0}, {4095, 0,     0},
-	{4095,   0, 0}, {4095, 0,     0},
-	{4095,   0, 0}, {4095, 0,     0},
-	{4095,   0, 0}, {4095, 0,     0},
-	{4095,   0, 0}, {4095, 0,     0},
-	{4095,   0, 0}, {4095, 0,     0},
-	{4095,   0, 0}, {4095, 0,     0},
-	{4095,   0, 0}, {4095, 0, 32640}
-};
-
 #define CSC_MV_OFF	0x0
 #define CSC_BV_OFF	0x2C
 #define CSC_LV_OFF	0x14
@@ -1831,17 +1813,6 @@ int mdss_mdp_pp_init(struct device *dev)
 					&mdss_pp_res->dspp_hist[i].comp);
 				init_completion(
 					&mdss_pp_res->dspp_hist[i].first_kick);
-			}
-
-			/*
-			 * Set LM ARGC flags to disable. This would program
-			 * default GC which would allow for rounding in HW.
-			 */
-			for (i = 0; i < MDSS_MAX_MIXER_DISP_NUM; i++) {
-				gc_cfg = &mdss_pp_res->argc_disp_cfg[i];
-				gc_cfg->flags = MDP_PP_OPS_DISABLE;
-				mdss_pp_res->pp_disp_flags[i] |=
-					PP_FLAGS_DIRTY_ARGC;
 			}
 		}
 	}

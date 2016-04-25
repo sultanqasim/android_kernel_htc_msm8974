@@ -405,27 +405,31 @@ static struct sysrq_key_op sysrq_unrt_op = {
 static DEFINE_SPINLOCK(sysrq_key_table_lock);
 
 static struct sysrq_key_op *sysrq_key_table[36] = {
-	&sysrq_loglevel_op,		
-	&sysrq_loglevel_op,		
-	&sysrq_loglevel_op,		
-	&sysrq_loglevel_op,		
-	&sysrq_loglevel_op,		
-	&sysrq_loglevel_op,		
-	&sysrq_loglevel_op,		
-	&sysrq_loglevel_op,		
-	&sysrq_loglevel_op,		
-	&sysrq_loglevel_op,		
+	&sysrq_loglevel_op,		/* 0 */
+	&sysrq_loglevel_op,		/* 1 */
+	&sysrq_loglevel_op,		/* 2 */
+	&sysrq_loglevel_op,		/* 3 */
+	&sysrq_loglevel_op,		/* 4 */
+	&sysrq_loglevel_op,		/* 5 */
+	&sysrq_loglevel_op,		/* 6 */
+	&sysrq_loglevel_op,		/* 7 */
+	&sysrq_loglevel_op,		/* 8 */
+	&sysrq_loglevel_op,		/* 9 */
 
-	NULL,				
-	&sysrq_reboot_op,		
-	&sysrq_crash_op,		
-	&sysrq_showlocks_op,		
-	&sysrq_term_op,			
-	&sysrq_moom_op,			
-	
-	NULL,				
-	NULL,				
-	&sysrq_kill_op,			
+	/*
+	 * a: Don't use for system provided sysrqs, it is handled specially on
+	 * sparc and will never arrive.
+	 */
+	NULL,				/* a */
+	&sysrq_reboot_op,		/* b */
+	&sysrq_crash_op,		/* c & ibm_emac driver debug */
+	&sysrq_showlocks_op,		/* d */
+	&sysrq_term_op,			/* e */
+	&sysrq_moom_op,			/* f */
+	/* g: May be registered for the kernel debugger */
+	NULL,				/* g */
+	NULL,				/* h - reserved for help */
+	&sysrq_kill_op,			/* i */
 #ifdef CONFIG_BLOCK
 	&sysrq_thaw_op,			/* j */
 #else

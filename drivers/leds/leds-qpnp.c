@@ -1668,33 +1668,6 @@ static int qpnp_kpdbl_set(struct qpnp_led_data *led)
 			}
 		}
 
-		/* On some platforms, GPLED1 channel should always be enabled
-		 * for the other GPLEDs 2/3/4 to glow. Before enabling GPLED
-		 * 2/3/4, first check if GPLED1 is already enabled. If GPLED1
-		 * channel is not enabled, then enable the GPLED1 channel but
-		 * with a 0 brightness
-		 */
-		if (!led->kpdbl_cfg->always_on &&
-			!test_bit(KPDBL_MASTER_BIT_INDEX, kpdbl_leds_in_use) &&
-						kpdbl_master) {
-			rc = pwm_config_us(kpdbl_master, 0,
-					kpdbl_master_period_us);
-			if (rc < 0) {
-				dev_err(&led->spmi_dev->dev,
-					"pwm config failed\n");
-				return rc;
-			}
-
-			rc = pwm_enable(kpdbl_master);
-			if (rc < 0) {
-				dev_err(&led->spmi_dev->dev,
-					"pwm enable failed\n");
-				return rc;
-			}
-			set_bit(KPDBL_MASTER_BIT_INDEX,
-						kpdbl_leds_in_use);
-		}
-
 		if (led->kpdbl_cfg->pwm_cfg->mode == PWM_MODE) {
 			period_us = led->kpdbl_cfg->pwm_cfg->pwm_period_us;
 			if (period_us > INT_MAX / NSEC_PER_USEC) {

@@ -2703,7 +2703,17 @@ static int qce_sps_get_bam(struct qce_device *pce_dev)
 	bam.phys_addr = pce_dev->ce_sps.bam_mem;
 	bam.virt_addr = pce_dev->ce_sps.bam_iobase;
 
-	bam.event_threshold = 0x10;	
+	/*
+	 * This event thresold value is only significant for BAM-to-BAM
+	 * transfer. It's ignored for BAM-to-System mode transfer.
+	 */
+	bam.event_threshold = 0x10;	/* Pipe event threshold */
+	/*
+	 * This threshold controls when the BAM publish
+	 * the descriptor size on the sideband interface.
+	 * SPS HW will only be used when
+	 * data transfer size >  64 bytes.
+	 */
 	bam.summing_threshold = 64;
 	/* SPS driver wll handle the crypto BAM IRQ */
 	bam.irq = (u32)pce_dev->ce_sps.bam_irq;

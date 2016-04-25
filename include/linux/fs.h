@@ -265,19 +265,21 @@ struct inodes_stat_t {
 #define IS_AUTOMOUNT(inode)	((inode)->i_flags & S_AUTOMOUNT)
 #define IS_NOSEC(inode)		((inode)->i_flags & S_NOSEC)
 
+/* the read-only stuff doesn't really belong here, but any other place is
+   probably as bad and I don't want to create yet another include file. */
 
-#define BLKROSET   _IO(0x12,93)	
-#define BLKROGET   _IO(0x12,94)	
-#define BLKRRPART  _IO(0x12,95)	
-#define BLKGETSIZE _IO(0x12,96)	
-#define BLKFLSBUF  _IO(0x12,97)	
-#define BLKRASET   _IO(0x12,98)	
-#define BLKRAGET   _IO(0x12,99)	
-#define BLKFRASET  _IO(0x12,100)
-#define BLKFRAGET  _IO(0x12,101)
-#define BLKSECTSET _IO(0x12,102)
-#define BLKSECTGET _IO(0x12,103)
-#define BLKSSZGET  _IO(0x12,104)
+#define BLKROSET   _IO(0x12,93)	/* set device read-only (0 = read-write) */
+#define BLKROGET   _IO(0x12,94)	/* get read-only status (0 = read_write) */
+#define BLKRRPART  _IO(0x12,95)	/* re-read partition table */
+#define BLKGETSIZE _IO(0x12,96)	/* return device size /512 (long *arg) */
+#define BLKFLSBUF  _IO(0x12,97)	/* flush buffer cache */
+#define BLKRASET   _IO(0x12,98)	/* set read ahead for block device */
+#define BLKRAGET   _IO(0x12,99)	/* get current read ahead setting */
+#define BLKFRASET  _IO(0x12,100)/* set filesystem (mm/filemap.c) read-ahead */
+#define BLKFRAGET  _IO(0x12,101)/* get filesystem (mm/filemap.c) read-ahead */
+#define BLKSECTSET _IO(0x12,102)/* set max sectors per request (ll_rw_blk.c) */
+#define BLKSECTGET _IO(0x12,103)/* get max sectors per request (ll_rw_blk.c) */
+#define BLKSSZGET  _IO(0x12,104)/* get block device sector size */
 #if 0
 #define BLKPG      _IO(0x12,105)/* See blkpg.h */
 
@@ -323,14 +325,18 @@ struct inodes_stat_t {
 #define FS_IOC32_GETVERSION		_IOR('v', 1, int)
 #define FS_IOC32_SETVERSION		_IOW('v', 2, int)
 
-#define	FS_SECRM_FL			0x00000001 
-#define	FS_UNRM_FL			0x00000002 
-#define	FS_COMPR_FL			0x00000004 
-#define FS_SYNC_FL			0x00000008 
-#define FS_IMMUTABLE_FL			0x00000010 
-#define FS_APPEND_FL			0x00000020 
-#define FS_NODUMP_FL			0x00000040 
-#define FS_NOATIME_FL			0x00000080 
+/*
+ * Inode flags (FS_IOC_GETFLAGS / FS_IOC_SETFLAGS)
+ */
+#define	FS_SECRM_FL			0x00000001 /* Secure deletion */
+#define	FS_UNRM_FL			0x00000002 /* Undelete */
+#define	FS_COMPR_FL			0x00000004 /* Compress file */
+#define FS_SYNC_FL			0x00000008 /* Synchronous updates */
+#define FS_IMMUTABLE_FL			0x00000010 /* Immutable file */
+#define FS_APPEND_FL			0x00000020 /* writes to file may only append */
+#define FS_NODUMP_FL			0x00000040 /* do not dump file */
+#define FS_NOATIME_FL			0x00000080 /* do not update atime */
+/* Reserved for compression usage... */
 #define FS_DIRTY_FL			0x00000100
 #define FS_COMPRBLK_FL			0x00000200 /* One or more compressed clusters */
 #define FS_NOCOMP_FL			0x00000400 /* Don't compress */
@@ -926,13 +932,14 @@ struct fown_struct {
  * Track a single file's readahead state
  */
 struct file_ra_state {
-	pgoff_t start;			
-	unsigned int size;		
-	unsigned int async_size;	
+	pgoff_t start;			/* where readahead started */
+	unsigned int size;		/* # of readahead pages */
+	unsigned int async_size;	/* do asynchronous readahead when
+					   there are only # of pages ahead */
 
-	unsigned int ra_pages;		
-	unsigned int mmap_miss;		
-	loff_t prev_pos;		
+	unsigned int ra_pages;		/* Maximum readahead window */
+	unsigned int mmap_miss;		/* Cache miss stat for mmap accesses */
+	loff_t prev_pos;		/* Cache last read() position */
 };
 
 /*
@@ -1450,7 +1457,11 @@ struct super_block {
 	   Cannot be worse than a second */
 	u32		   s_time_gran;
 
-	struct mutex s_vfs_rename_mutex;	
+	/*
+	 * The next field is for VFS *only*. No filesystems have any business
+	 * even looking at it. You had been warned.
+	 */
+	struct mutex s_vfs_rename_mutex;	/* Kludge */
 
 	/*
 	 * Filesystem subtype.  If non-empty the filesystem type field

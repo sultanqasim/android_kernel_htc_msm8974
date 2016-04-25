@@ -93,11 +93,17 @@ int vm_dirty_ratio = 20;
  */
 unsigned long vm_dirty_bytes;
 
-unsigned int dirty_writeback_interval = 5 * 100; 
+/*
+ * The interval between `kupdate'-style writebacks
+ */
+unsigned int dirty_writeback_interval = 5 * 100; /* centiseconds */
 
 EXPORT_SYMBOL_GPL(dirty_writeback_interval);
 
-unsigned int dirty_expire_interval = 30 * 100; 
+/*
+ * The longest time for which data is allowed to remain dirty
+ */
+unsigned int dirty_expire_interval = 30 * 100; /* centiseconds */
 
 /*
  * Flag that makes the machine dump writes/reads and block dirtyings.
@@ -1488,7 +1494,11 @@ void throttle_vm_writeout(gfp_t gfp_mask)
 		global_dirty_limits(&background_thresh, &dirty_thresh);
 		dirty_thresh = hard_dirty_limit(dirty_thresh);
 
-                dirty_thresh += dirty_thresh / 10;      
+                /*
+                 * Boost the allowable dirty threshold a bit for page
+                 * allocators so they don't get DoS'ed by heavy writers
+                 */
+                dirty_thresh += dirty_thresh / 10;      /* wheeee... */
 
                 if (global_page_state(NR_UNSTABLE_NFS) +
 			global_page_state(NR_WRITEBACK) <= dirty_thresh)

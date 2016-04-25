@@ -737,12 +737,6 @@ static void adb_function_disable(struct usb_function *f)
 	struct usb_composite_dev	*cdev = dev->cdev;
 
 	DBG(cdev, "adb_function_disable cdev %p\n", cdev);
-	/*
-	 * Bus reset happened or cable disconnected.  No
-	 * need to disable the configuration now.  We will
-	 * set noify_close to true when device file is re-opened.
-	 */
-	dev->notify_close = false;
 	atomic_set(&dev->online, 0);
 	atomic_set(&dev->error, 1);
 	usb_ep_disable(dev->ep_in);

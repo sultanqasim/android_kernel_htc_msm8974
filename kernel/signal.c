@@ -2354,7 +2354,10 @@ relock:
 			break; /* will return non-zero "signr" value */
 		}
 
-		if (sig_kernel_ignore(signr)) 
+		/*
+		 * Now we are doing the default action for this signal.
+		 */
+		if (sig_kernel_ignore(signr)) /* Default is nothing. */
 			continue;
 
 		/*
