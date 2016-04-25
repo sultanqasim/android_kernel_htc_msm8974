@@ -43,7 +43,10 @@
 #define QCDT_MAGIC     "QCDT"  /* Master DTB magic */
 #define QCDT_VERSION   2       /* QCDT version */
 
+/*
 #define QCDT_DT_TAG    "qcom,msm-id = <"
+*/
+#define QCDT_DT_TAG    "htc,project-id = <"
 #define QCDT_BOARD_TAG "qcom,board-id = <"
 
 #define PAGE_SIZE_DEF  2048
