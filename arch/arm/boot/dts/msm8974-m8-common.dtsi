@@ -37,7 +37,7 @@
         i2c@f9925000 {
                 nxp_pn544_nfc@28 {
                         compatible = "nxp,pn544-nfc";
-                        reg = <0x28>;
+                        reg = <0x28 0>;
                         interrupt-parent = <&msmgpio>;
                         interrupts = <144 0x4>;
                         nxp,ven-gpio = <&msmgpio 2 0x00>;
@@ -48,7 +48,7 @@
 
                 htc_mcu@3a {
                         compatible = "htc_mcu";
-                        reg = <0x3a>;
+                        reg = <0x3a 0>;
                         interrupt-parent = <&msmgpio>;
                         interrupts = <67 0x0>;
                         mcu,intr-gpio  = <&msmgpio 67 0x00>;
@@ -68,7 +68,7 @@
         i2c@f9925000 {
                 cm32181@10 {
                         compatible = "CM32181";
-                        reg = <0x10>;
+                        reg = <0x10 0>;
                         interrupt-parent = <&msmgpio>;
                         interrupts = <73 0x02>;
                         interrupt-names = "cm32181";
@@ -126,7 +126,7 @@
 	i2c@f9925000 {
 		tps61310@33 {
 			compatible = "TPS61310_FLASHLIGHT";
-			reg = <0x33>;
+			reg = <0x33 0>;
 			tps61310,tps61310_strb0 = <&pm8941_gpios 26 0x00>;
 			tps61310,tps61310_strb1 = <&pm8941_gpios 27 0x00>;
 			tps61310,flash_duration_ms = <600>;

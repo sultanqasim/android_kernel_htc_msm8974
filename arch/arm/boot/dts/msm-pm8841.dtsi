@@ -267,7 +267,7 @@
 			compatible = "htc,modem-debug-dump-pmic";
 			#address-cells = <1>;
 			#size-cells = <1>;
-			reg = <0>;
+			reg = <0 0>;
 			htc,dump-register =
 			/* PM8941 BB_CLK1 */
 			< 0 0x5105 >,
