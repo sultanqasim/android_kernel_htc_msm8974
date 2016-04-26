@@ -2,8 +2,8 @@
 from sys import argv, exit
 from os import system, environ
 
-SUPPORTED_DEVICES = ["cm_m8"]
-MODULE_DEVICES = []
+SUPPORTED_DEVICES = ["m8", "cm_m8"]
+MODULE_DEVICES = ["m8"]
 
 if len(argv) < 2:
     print("Target device not specified.")

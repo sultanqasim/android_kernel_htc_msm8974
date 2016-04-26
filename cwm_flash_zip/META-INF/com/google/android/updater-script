@@ -15,12 +15,12 @@ delete("/tmp/mkbootimg");
 delete("/tmp/unpackbootimg");
 delete("/tmp/flash_kernel.sh");
 
-#ui_print("Installing kernel modules...");
-#mount("ext4", "EMMC", "/dev/block/platform/msm_sdcc.1/by-name/system", "/system");
-#package_extract_dir("system", "/system");
-#set_perm_recursive(0, 0, 0755, 0644, "/system/lib/modules");
-#symlink("/system/lib/modules/pronto/pronto_wlan.ko", "/system/lib/modules/wlan.ko");
-#unmount("/system");
+ui_print("Installing kernel modules...");
+mount("ext4", "EMMC", "/dev/block/platform/msm_sdcc.1/by-name/system", "/system");
+package_extract_dir("system", "/system");
+set_perm_recursive(0, 0, 0755, 0644, "/system/lib/modules");
+symlink("/system/lib/modules/pronto/pronto_wlan.ko", "/system/lib/modules/wlan.ko");
+unmount("/system");
 
 ui_print("Kernel Installation Completed!");
 show_progress(0.100000, 0);
