@@ -101,6 +101,7 @@ DECLARE_UAC_AC_HEADER_DESCRIPTOR(1);
 DECLARE_USB_MIDI_OUT_JACK_DESCRIPTOR(1);
 DECLARE_USB_MS_ENDPOINT_DESCRIPTOR(16);
 
+/* B.3.1  Standard AC Interface Descriptor */
 static struct usb_interface_descriptor midi_ac_interface_desc  = {
 	.bLength =		USB_DT_INTERFACE_SIZE,
 	.bDescriptorType =	USB_DT_INTERFACE,
@@ -111,6 +112,7 @@ static struct usb_interface_descriptor midi_ac_interface_desc  = {
 	/* .iInterface =	DYNAMIC */
 };
 
+/* B.3.2  Class-Specific AC Interface Descriptor */
 static struct uac1_ac_header_descriptor_1 midi_ac_header_desc  = {
 	.bLength =		UAC_DT_AC_HEADER_SIZE(1),
 	.bDescriptorType =	USB_DT_CS_INTERFACE,
@@ -121,6 +123,7 @@ static struct uac1_ac_header_descriptor_1 midi_ac_header_desc  = {
 	/* .baInterfaceNr =	DYNAMIC */
 };
 
+/* B.4.1  Standard MS Interface Descriptor */
 static struct usb_interface_descriptor ms_interface_desc  = {
 	.bLength =		USB_DT_INTERFACE_SIZE,
 	.bDescriptorType =	USB_DT_INTERFACE,
@@ -131,6 +134,7 @@ static struct usb_interface_descriptor ms_interface_desc  = {
 	/* .iInterface =	DYNAMIC */
 };
 
+/* B.4.2  Class-Specific MS Interface Descriptor */
 static struct usb_ms_header_descriptor ms_header_desc  = {
 	.bLength =		USB_DT_MS_HEADER_SIZE,
 	.bDescriptorType =	USB_DT_CS_INTERFACE,
@@ -908,13 +912,24 @@ fail:
 	return status;
 }
 
-int  f_midi_bind_config(struct usb_configuration *c,
+/**
+ * f_midi_bind_config - add USB MIDI function to a configuration
+ * @c: the configuration to supcard the USB audio function
+ * @index: the soundcard index to use for the ALSA device creation
+ * @id: the soundcard id to use for the ALSA device creation
+ * @buflen: the buffer length to use
+ * @qlen the number of read requests to pre-allocate
+ * Context: single threaded during gadget setup
+ *
+ * Returns zero on success, else negative errno.
+ */
+int /* __init */ f_midi_bind_config(struct usb_configuration *c,
 			      int index, char *id,
 			      unsigned int in_ports,
 			      unsigned int out_ports,
 			      unsigned int buflen,
 			      unsigned int qlen,
-			      struct midi_alsa_config* config)
+			      struct midi_alsa_config *config)
 {
 	struct f_midi *midi;
 	int status, i;
@@ -924,7 +939,7 @@ int  f_midi_bind_config(struct usb_configuration *c,
 		config->device = -1;
 	}
 
-	
+	/* sanity check */
 	if (in_ports > MAX_PORTS || out_ports > MAX_PORTS)
 		return -EINVAL;
 
@@ -951,7 +966,7 @@ int  f_midi_bind_config(struct usb_configuration *c,
 	midi->gadget = c->cdev->gadget;
 	tasklet_init(&midi->tasklet, f_midi_in_tasklet, (unsigned long) midi);
 
-	
+	/* set up ALSA midi devices */
 	midi->id = kstrdup(id, GFP_KERNEL);
 	midi->index = index;
 	midi->buflen = buflen;

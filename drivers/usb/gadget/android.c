@@ -60,6 +60,9 @@ int board_get_usb_ats(void);
 #include "epautoconf.c"
 #include "composite.c"
 
+#ifdef CONFIG_SND_RAWMIDI
+#include "f_midi.c"
+#endif
 #include "f_diag.c"
 #include "f_qdss.c"
 #include "f_rmnet_smd.c"
@@ -70,7 +73,6 @@ int board_get_usb_ats(void);
 #ifdef CONFIG_SND_PCM
 #include "f_audio_source.c"
 #endif
-#include "f_midi.c"
 #include "f_charger.c"
 #include "f_mass_storage.c"
 #include "u_serial.c"
@@ -132,9 +134,10 @@ static const char longname[] = "Gadget Android";
 static bool connect2pc;
 
 #define ANDROID_DEVICE_NODE_NAME_LENGTH 11
+/* f_midi configuration */
 #define MIDI_INPUT_PORTS    1
 #define MIDI_OUTPUT_PORTS   1
-#define MIDI_BUFFER_SIZE    256
+#define MIDI_BUFFER_SIZE    1024
 #define MIDI_QUEUE_LENGTH   32
 
 struct android_usb_function {
@@ -2700,7 +2703,7 @@ struct android_usb_function projector2_function = {
 	.attributes = projector2_function_attributes
 };
 
-
+#ifdef CONFIG_SND_RAWMIDI
 static int midi_function_init(struct android_usb_function *f,
 					struct usb_composite_dev *cdev)
 {
@@ -2736,7 +2739,7 @@ static ssize_t midi_alsa_show(struct device *dev,
 	struct android_usb_function *f = dev_get_drvdata(dev);
 	struct midi_alsa_config *config = f->config;
 
-	
+	/* print ALSA card and device numbers */
 	return sprintf(buf, "%d %d\n", config->card, config->device);
 }
 
@@ -2754,7 +2757,7 @@ static struct android_usb_function midi_function = {
 	.bind_config	= midi_function_bind_config,
 	.attributes	= midi_function_attributes,
 };
-
+#endif
 static struct android_usb_function *supported_functions[] = {
 	&rndis_function,
 	&rndis_qc_function,
@@ -2765,7 +2768,6 @@ static struct android_usb_function *supported_functions[] = {
 	&mtp_function,
 	&ptp_function,
 	&ncm_function,
-	&midi_function,
 	&charger_function,
 
 	&adb_function,
@@ -2792,6 +2794,9 @@ static struct android_usb_function *supported_functions[] = {
 	&qdss_function,
 	&ccid_function,
 	&uasp_function,
+#ifdef CONFIG_SND_RAWMIDI
+	&midi_function,
+#endif
 	NULL
 };
 
